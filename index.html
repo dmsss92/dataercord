@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Data Viewer</title>
+  <style>
+    /* ======== MINIMALIST CSS RESET & TYPOGRAPHY ======== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      background-color: #ffffff; /* Pure white background */
+      color: #111111;
+      line-height: 1.6;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    h1, h2 { font-weight: 600; letter-spacing: -0.5px; }
+    
+    /* ======== MINIMAL LOGIN UI ======== */
+    #login-container { 
+      width: 100%;
+      max-width: 360px; 
+      margin-top: 15vh; 
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    #login-container h2 { font-size: 24px; margin-bottom: 8px; }
+    #login-container p { color: #666666; font-size: 14px; margin-bottom: 30px; }
+
+    .input-group { margin-bottom: 20px; }
+    .input-group input {
+      width: 100%;
+      padding: 14px 0;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #dddddd; /* Only bottom border */
+      font-size: 16px;
+      color: #111;
+      transition: border-color 0.3s;
+      outline: none;
+      text-align: center;
+    }
+    .input-group input:focus { border-bottom: 1px solid #111111; }
+    .input-group input::placeholder { color: #aaaaaa; }
+
+    button.login-btn {
+      width: 100%;
+      padding: 14px;
+      background-color: #111111; /* Stark black button */
+      color: #ffffff;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button.login-btn:hover { opacity: 0.8; }
+    button.login-btn:disabled { background-color: #cccccc; cursor: not-allowed; }
+    
+    #error-msg { color: #d93025; margin-top: 15px; font-size: 13px; min-height: 20px; }
+
+    /* ======== MINIMAL DATA VIEWER & TABS ======== */
+    #data-container {
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 20px;
+    }
+    #data-container h1 { font-size: 22px; margin-bottom: 30px; }
+
+    /* Minimal Horizontal Tabs */
+    .tab-container { 
+      display: flex; 
+      flex-wrap: nowrap; 
+      overflow-x: auto; 
+      border-bottom: 1px solid #eeeeee; 
+      margin-bottom: 30px; 
+      -webkit-overflow-scrolling: touch; 
+      gap: 25px;
+    }
+    .tab-container::-webkit-scrollbar { display: none; } /* Hide scrollbar for ultra-clean look */
+    
+    .tab-button { 
+      background-color: transparent; 
+      border: none; 
+      border-bottom: 2px solid transparent; /* Hidden by default */
+      cursor: pointer; 
+      padding: 0 0 12px 0; 
+      font-size: 14px; 
+      font-weight: 500; 
+      color: #888888; 
+      white-space: nowrap; 
+      transition: all 0.2s; 
+    }
+    .tab-button:hover { color: #111111; }
+    .tab-button.active { color: #111111; border-bottom: 2px solid #111111; } /* Black underline for active */
+    
+    /* ======== MINIMAL TABLE ======== */
+    .tab-content { display: none; animation: fadeIn 0.4s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    table { border-collapse: collapse; width: 100%; min-width: 600px; font-size: 14px; }
+    /* Only horizontal borders, no vertical lines */
+    th, td { border-bottom: 1px solid #eeeeee; padding: 16px 12px; text-align: left; }
+    th { 
+      color: #111111; 
+      font-weight: 600; 
+      text-transform: uppercase; 
+      font-size: 12px; 
+      letter-spacing: 0.5px; 
+      border-bottom: 1px solid #111111; /* Stronger border for header */
+    }
+    td { color: #444444; }
+    tr:last-child td { border-bottom: none; }
+    
+    a.doc-link { color: #111111; text-decoration: underline; text-underline-offset: 4px; font-weight: 500; }
+    a.doc-link:hover { color: #666666; }
+
+    /* ======== MOBILE RESPONSIVE ======== */
+    @media (max-width: 600px) {
+      body { padding: 20px 15px; }
+      #login-container { margin-top: 10vh; }
+      th, td { padding: 14px 10px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Minimal Login Section -->
+  <div id="login-container">
+    <h2>Access Records</h2>
+    <p>Enter the master password to continue</p>
+    
+    <div class="input-group">
+      <input type="password" id="password-input" placeholder="Password">
+    </div>
+    <button class="login-btn" onclick="fetchData()">Unlock</button>
+    <div id="error-msg"></div>
+  </div>
+
+  <!-- Minimal Data Section -->
+  <div id="data-container" style="display: none;">
+    <h1>Database</h1>
+    <div id="tabs-header" class="tab-container"></div>
+    <div id="tabs-body"></div>
+  </div>
+
+  <script>
+    // 👇 YAHAN APNA GOOGLE APPS SCRIPT KA URL DAALEIN 👇
+    const googleApiUrl = "https://script.google.com/macros/s/AKfycbywrFnZ6TCDz1t7zihoFtjqym0M1ubo1LqxGrIFtCymB5mliqZ1t5ET13hg7_UHz6OVdQ/exec"; 
+    
+    function fetchData() {
+      const pwd = document.getElementById('password-input').value;
+      const errorMsg = document.getElementById('error-msg');
+      const loginBtn = document.querySelector('.login-btn');
+      
+      if (!pwd) {
+        errorMsg.textContent = "Password is required.";
+        return;
+      }
+
+      errorMsg.textContent = "Verifying...";
+      errorMsg.style.color = "#111111";
+      loginBtn.disabled = true;
+      loginBtn.textContent = "WAIT...";
+      
+      const payload = { pwd: pwd, timestamp: new Date().getTime() };
+
+      fetch(googleApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.json())
+      .then(dataObj => {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "UNLOCK";
+
+        if (dataObj.error) {
+          errorMsg.style.color = "#d93025";
+          errorMsg.textContent = dataObj.error; 
+        } else {
+          document.getElementById('login-container').style.display = 'none';
+          document.getElementById('data-container').style.display = 'block';
+          buildTabs(dataObj);
+        }
+      })
+      .catch(error => {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "UNLOCK";
+        errorMsg.style.color = "#d93025";
+        errorMsg.textContent = "Connection failed.";
+      });
+    }
+
+    document.getElementById('password-input').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') { fetchData(); }
+    });
+
+    function buildTabs(dataObj) {
+      const tabsHeader = document.getElementById('tabs-header');
+      const tabsBody = document.getElementById('tabs-body');
+      let isFirstTab = true;
+
+      for (const tabName in dataObj) {
+        const rows = dataObj[tabName];
+        if (rows.length === 0) continue;
+
+        // Minimal Tab Buttons
+        const btn = document.createElement('button');
+        btn.className = 'tab-button' + (isFirstTab ? ' active' : '');
+        btn.textContent = tabName;
+        btn.onclick = function(event) { openTab(event, tabName); };
+        tabsHeader.appendChild(btn);
+
+        const contentDiv = document.createElement('div');
+        contentDiv.id = tabName;
+        contentDiv.className = 'tab-content' + (isFirstTab ? ' active' : '');
+
+        const tableWrapper = document.createElement('div');
+        tableWrapper.className = 'table-responsive';
+
+        const table = document.createElement('table');
+        const thead = document.createElement('thead');
+        const tbody = document.createElement('tbody');
+
+        const headers = rows[0];
+        const trHead = document.createElement('tr');
+        headers.forEach(headerObj => {
+          const th = document.createElement('th');
+          th.textContent = headerObj.text;
+          trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+
+        for (let i = 1; i < rows.length; i++) {
+          const tr = document.createElement('tr');
+          rows[i].forEach(cellObj => {
+            const td = document.createElement('td');
+            let linkUrl = cellObj.link;
+            if (!linkUrl && cellObj.text.startsWith('http')) linkUrl = cellObj.text; 
+
+            if (linkUrl) {
+              td.innerHTML = `<a class="doc-link" href="${linkUrl}" target="_blank">${cellObj.text}</a>`;
+            } else {
+              td.textContent = cellObj.text;
+            }
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        }
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        
+        tableWrapper.appendChild(table);
+        contentDiv.appendChild(tableWrapper);
+        tabsBody.appendChild(contentDiv);
+
+        isFirstTab = false; 
+      }
+    }
+
+    function openTab(evt, tabId) {
+      const tabContents = document.getElementsByClassName('tab-content');
+      for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove('active');
+      }
+      const tabButtons = document.getElementsByClassName('tab-button');
+      for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('active');
+      }
+      document.getElementById(tabId).classList.add('active');
+      evt.currentTarget.classList.add('active');
+    }
+  </script>
+</body>
+</html>
