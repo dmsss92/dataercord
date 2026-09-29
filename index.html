@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Data Viewer</title>
   <style>
-    /* ======== MINIMALIST CSS RESET & TYPOGRAPHY ======== */
+    /* ======== MINIMALIST CSS RESET ======== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { 
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-      background-color: #ffffff; /* Pure white background */
+      background-color: #ffffff; 
       color: #111111;
       line-height: 1.6;
-      padding: 30px 20px;
+      padding: 40px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -24,85 +24,88 @@
     /* ======== MINIMAL LOGIN UI ======== */
     #login-container { 
       width: 100%;
-      max-width: 360px; 
-      margin-top: 15vh; 
+      max-width: 340px; 
+      margin: 10vh auto 0 auto; 
       text-align: center;
       animation: fadeIn 0.5s ease;
     }
     
-    #login-container h2 { font-size: 24px; margin-bottom: 8px; }
-    #login-container p { color: #666666; font-size: 14px; margin-bottom: 30px; }
+    #login-container h2 { font-size: 26px; margin-bottom: 8px; }
+    #login-container p { color: #666666; font-size: 15px; margin-bottom: 35px; }
 
-    .input-group { margin-bottom: 20px; }
+    .input-group { margin-bottom: 25px; }
     .input-group input {
       width: 100%;
-      padding: 14px 0;
+      padding: 15px 0;
       background: transparent;
       border: none;
-      border-bottom: 1px solid #dddddd; /* Only bottom border */
+      border-bottom: 1.5px solid #dddddd; 
       font-size: 16px;
       color: #111;
       transition: border-color 0.3s;
       outline: none;
       text-align: center;
+      border-radius: 0; /* Prevents iOS rounded corners */
     }
-    .input-group input:focus { border-bottom: 1px solid #111111; }
+    .input-group input:focus { border-bottom: 1.5px solid #111111; }
     .input-group input::placeholder { color: #aaaaaa; }
 
     button.login-btn {
       width: 100%;
-      padding: 14px;
-      background-color: #111111; /* Stark black button */
+      padding: 16px;
+      background-color: #111111; 
       color: #ffffff;
       border: none;
-      font-size: 14px;
-      font-weight: 500;
+      font-size: 15px;
+      font-weight: 600;
       letter-spacing: 1px;
       text-transform: uppercase;
       cursor: pointer;
       transition: opacity 0.2s;
+      border-radius: 4px; /* Slight rounding for better touch feel */
     }
     button.login-btn:hover { opacity: 0.8; }
     button.login-btn:disabled { background-color: #cccccc; cursor: not-allowed; }
     
-    #error-msg { color: #d93025; margin-top: 15px; font-size: 13px; min-height: 20px; }
+    #error-msg { color: #d93025; margin-top: 15px; font-size: 14px; min-height: 20px; font-weight: 500; }
 
-    /* ======== MINIMAL DATA VIEWER & TABS ======== */
+    /* ======== DATA VIEWER & TABS ======== */
     #data-container {
       width: 100%;
       max-width: 1000px;
-      margin-top: 20px;
+      margin: 0 auto;
     }
-    #data-container h1 { font-size: 22px; margin-bottom: 30px; }
+    #data-container h1 { font-size: 24px; margin-bottom: 25px; }
 
-    /* Minimal Horizontal Tabs */
+    /* Minimal Tabs */
     .tab-container { 
       display: flex; 
       flex-wrap: nowrap; 
       overflow-x: auto; 
       border-bottom: 1px solid #eeeeee; 
-      margin-bottom: 30px; 
+      margin-bottom: 25px; 
       -webkit-overflow-scrolling: touch; 
-      gap: 25px;
+      gap: 20px;
+      padding-bottom: 2px;
     }
-    .tab-container::-webkit-scrollbar { display: none; } /* Hide scrollbar for ultra-clean look */
+    .tab-container::-webkit-scrollbar { display: none; } 
     
     .tab-button { 
       background-color: transparent; 
       border: none; 
-      border-bottom: 2px solid transparent; /* Hidden by default */
+      border-bottom: 2px solid transparent; 
       cursor: pointer; 
-      padding: 0 0 12px 0; 
-      font-size: 14px; 
+      padding: 0 5px 12px 5px; 
+      font-size: 15px; 
       font-weight: 500; 
       color: #888888; 
       white-space: nowrap; 
       transition: all 0.2s; 
     }
     .tab-button:hover { color: #111111; }
-    .tab-button.active { color: #111111; border-bottom: 2px solid #111111; } /* Black underline for active */
+    .tab-button.active { color: #111111; border-bottom: 2px solid #111111; } 
     
-    /* ======== MINIMAL TABLE ======== */
+    /* ======== TABLE ======== */
     .tab-content { display: none; animation: fadeIn 0.4s ease; }
     .tab-content.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -111,18 +114,30 @@
       width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      margin-bottom: 20px;
     }
     
-    table { border-collapse: collapse; width: 100%; min-width: 600px; font-size: 14px; }
-    /* Only horizontal borders, no vertical lines */
-    th, td { border-bottom: 1px solid #eeeeee; padding: 16px 12px; text-align: left; }
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      font-size: 14.5px; 
+    }
+    
+    /* YEH SABSE ZAROORI HAI MOBILE KE LIYE: Text ko dabne nahi dega */
+    th, td { 
+      border-bottom: 1px solid #eeeeee; 
+      padding: 16px 15px; 
+      text-align: left; 
+      white-space: nowrap; /* Stops text from squishing on mobile */
+    }
+    
     th { 
       color: #111111; 
       font-weight: 600; 
       text-transform: uppercase; 
       font-size: 12px; 
       letter-spacing: 0.5px; 
-      border-bottom: 1px solid #111111; /* Stronger border for header */
+      border-bottom: 1.5px solid #111111; 
     }
     td { color: #444444; }
     tr:last-child td { border-bottom: none; }
@@ -130,11 +145,16 @@
     a.doc-link { color: #111111; text-decoration: underline; text-underline-offset: 4px; font-weight: 500; }
     a.doc-link:hover { color: #666666; }
 
-    /* ======== MOBILE RESPONSIVE ======== */
+    /* ======== MOBILE RESPONSIVE TWEAKS ======== */
     @media (max-width: 600px) {
-      body { padding: 20px 15px; }
-      #login-container { margin-top: 10vh; }
-      th, td { padding: 14px 10px; font-size: 13px; }
+      body { padding: 25px 15px; } /* Less padding on sides for smaller screens */
+      #login-container { margin-top: 5vh; }
+      #data-container h1 { font-size: 22px; margin-bottom: 20px; }
+      
+      .tab-button { font-size: 14px; padding: 0 2px 10px 2px; }
+      .tab-container { gap: 15px; }
+      
+      th, td { padding: 14px 12px; font-size: 14px; }
     }
   </style>
 </head>
