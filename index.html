@@ -45,7 +45,7 @@
       transition: border-color 0.3s;
       outline: none;
       text-align: center;
-      border-radius: 0; /* Prevents iOS rounded corners */
+      border-radius: 0; 
     }
     .input-group input:focus { border-bottom: 1.5px solid #111111; }
     .input-group input::placeholder { color: #aaaaaa; }
@@ -62,7 +62,7 @@
       text-transform: uppercase;
       cursor: pointer;
       transition: opacity 0.2s;
-      border-radius: 4px; /* Slight rounding for better touch feel */
+      border-radius: 4px; 
     }
     button.login-btn:hover { opacity: 0.8; }
     button.login-btn:disabled { background-color: #cccccc; cursor: not-allowed; }
@@ -76,6 +76,27 @@
       margin: 0 auto;
     }
     #data-container h1 { font-size: 24px; margin-bottom: 25px; }
+
+    /* --- SEARCH BAR CSS --- */
+    .search-container {
+      margin-bottom: 25px;
+      width: 100%;
+    }
+    .search-container input {
+      width: 100%;
+      padding: 12px 5px;
+      background: transparent;
+      border: none;
+      border-bottom: 1.5px solid #dddddd;
+      font-size: 15px;
+      color: #111;
+      transition: border-color 0.3s;
+      outline: none;
+      border-radius: 0;
+    }
+    .search-container input:focus { border-bottom: 1.5px solid #111111; }
+    .search-container input::placeholder { color: #aaaaaa; }
+    /* ---------------------- */
 
     /* Minimal Tabs */
     .tab-container { 
@@ -115,31 +136,17 @@
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       margin-bottom: 20px;
+      border-radius: 6px;
+      border: 1px solid #eeeeee; 
     }
     
-    table { 
-      border-collapse: collapse; 
-      width: 100%; 
-      font-size: 14.5px; 
-    }
-    
-    /* YEH SABSE ZAROORI HAI MOBILE KE LIYE: Text ko dabne nahi dega */
-    th, td { 
-      border-bottom: 1px solid #eeeeee; 
-      padding: 16px 15px; 
-      text-align: left; 
-      white-space: nowrap; /* Stops text from squishing on mobile */
-    }
-    
-    th { 
-      color: #111111; 
-      font-weight: 600; 
-      text-transform: uppercase; 
-      font-size: 12px; 
-      letter-spacing: 0.5px; 
-      border-bottom: 1.5px solid #111111; 
-    }
+    table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+    th, td { border-bottom: 1px solid #eeeeee; padding: 16px 15px; text-align: left; white-space: nowrap; }
+    th { color: #111111; font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; border-bottom: 1.5px solid #111111; background-color: #ffffff; }
     td { color: #444444; }
+    
+    tbody tr:nth-child(even) { background-color: #fafafa; }
+    tbody tr:hover { background-color: #f0f0f0; }
     tr:last-child td { border-bottom: none; }
     
     a.doc-link { color: #111111; text-decoration: underline; text-underline-offset: 4px; font-weight: 500; }
@@ -147,13 +154,11 @@
 
     /* ======== MOBILE RESPONSIVE TWEAKS ======== */
     @media (max-width: 600px) {
-      body { padding: 25px 15px; } /* Less padding on sides for smaller screens */
+      body { padding: 25px 15px; } 
       #login-container { margin-top: 5vh; }
       #data-container h1 { font-size: 22px; margin-bottom: 20px; }
-      
       .tab-button { font-size: 14px; padding: 0 2px 10px 2px; }
       .tab-container { gap: 15px; }
-      
       th, td { padding: 14px 12px; font-size: 14px; }
     }
   </style>
@@ -175,6 +180,12 @@
   <!-- Minimal Data Section -->
   <div id="data-container" style="display: none;">
     <h1>Database</h1>
+    
+    <!-- NAYA SEARCH BAR ADD KIYA GAYA HAI -->
+    <div class="search-container">
+      <input type="text" id="search-input" placeholder="Search records... (e.g. name, date, link)" onkeyup="searchTables()">
+    </div>
+    
     <div id="tabs-header" class="tab-container"></div>
     <div id="tabs-body"></div>
   </div>
@@ -240,7 +251,6 @@
         const rows = dataObj[tabName];
         if (rows.length === 0) continue;
 
-        // Minimal Tab Buttons
         const btn = document.createElement('button');
         btn.className = 'tab-button' + (isFirstTab ? ' active' : '');
         btn.textContent = tabName;
@@ -305,6 +315,40 @@
       }
       document.getElementById(tabId).classList.add('active');
       evt.currentTarget.classList.add('active');
+    }
+
+    // NAYA SEARCH FUNCTION JAB KOI TYPE KAREGA
+    function searchTables() {
+      const input = document.getElementById("search-input");
+      const filter = input.value.toLowerCase();
+      const tabContents = document.getElementsByClassName("tab-content");
+
+      // Har tab ke andar ki table ko check karna
+      for (let i = 0; i < tabContents.length; i++) {
+        const table = tabContents[i].querySelector("table");
+        if (!table) continue;
+        
+        const trs = table.getElementsByTagName("tr");
+        
+        // Row 1 se shuru karein (Row 0 header hota hai jise nahi chupana)
+        for (let j = 1; j < trs.length; j++) {
+          const tds = trs[j].getElementsByTagName("td");
+          let rowMatches = false;
+          
+          // Row ke har column (cell) ko check karna
+          for (let k = 0; k < tds.length; k++) {
+            if (tds[k]) {
+              const cellText = tds[k].textContent || tds[k].innerText;
+              if (cellText.toLowerCase().indexOf(filter) > -1) {
+                rowMatches = true;
+                break; // Ek bhi match mil gaya toh row dikhayenge
+              }
+            }
+          }
+          // Agar match mila toh dikhao, nahi toh chupao (none)
+          trs[j].style.display = rowMatches ? "" : "none";
+        }
+      }
     }
   </script>
 </body>
